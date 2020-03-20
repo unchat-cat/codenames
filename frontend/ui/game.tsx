@@ -168,17 +168,17 @@ export class Game extends React.Component {
   }
 
   txtTeamWins(team) {
-    team = txtLocaliseTeam(team);
+    team = this.txtLocaliseTeam(team);
     return "L'equip " + team + " guanya!";
   }
 
   txtTeamTurn(team) {
-    team = txtLocaliseTeam(team);
+    team = this.txtLocaliseTeam(team);
     return "Ara juga l'equip " + team;
   }
 
   txtEndTeamTurn(team) {
-    team = txtLocaliseTeam(team);
+    team = this.txtLocaliseTeam(team);
     return "Finalitza torn equip " + team;
   }
 
