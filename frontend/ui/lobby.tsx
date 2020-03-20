@@ -34,6 +34,7 @@ export const Lobby = ({ defaultGameID }) => {
   return (
     <div id="lobby">
       <p id="banner">
+        Traduït i adaptat per <a href="https://unchat.cat">unchat.cat</a>. Vegeu el <a href="https://github.com/unchat-cat/codenames">codi font</a>.
       </p>
       <div id="available-games">
         <form id="new-game">

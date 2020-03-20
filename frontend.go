@@ -28,6 +28,7 @@ const tpl = `
     <body>
 		<div id="app">
 		</div>
+		<h1><a href="https://unchat.cat" style="color:black;text-decoration:none;text-transform:none;">unchat.cat</a></h1>
     </body>
 </html>
 `
