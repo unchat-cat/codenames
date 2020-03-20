@@ -302,7 +302,7 @@ temps
 terra
 terrassa
 torn
-torra
+terra
 tortuga
 tribuna
 trompa
