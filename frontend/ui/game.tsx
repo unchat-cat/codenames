@@ -129,6 +129,9 @@ export class Game extends React.Component {
   }
 
   public nextGame(e) {
+    if (this.state.game.winning_team && !confirm("Segures? No la cagueu, eh?")) {
+      return;
+    }
     e.preventDefault();
     $.post(
       '/next-game',
