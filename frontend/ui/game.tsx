@@ -163,6 +163,25 @@ export class Game extends React.Component {
     Settings.save(vals);
   }
 
+  txtLocaliseTeam(team) {
+    return (team == 'red') ? 'vermell' : 'blau';
+  }
+
+  txtTeamWins(team) {
+    team = txtLocaliseTeam(team);
+    return "L'equip " + team + " guanya!";
+  }
+
+  txtTeamTurn(team) {
+    team = txtLocaliseTeam(team);
+    return "Ara juga l'equip " + team;
+  }
+
+  txtEndTeamTurn(team) {
+    team = txtLocaliseTeam(team);
+    return "Finalitza torn equip " + team;
+  }
+
   render() {
     if (!this.state.game) {
       return <p className="loading">Loading&hellip;</p>;
@@ -187,10 +206,10 @@ export class Game extends React.Component {
     let status, statusClass;
     if (this.state.game.winning_team) {
       statusClass = this.state.game.winning_team + ' win';
-      status = this.state.game.winning_team + ' wins!';
+      status = this.txtTeamWins(this.state.game.winning_team);
     } else {
       statusClass = this.currentTeam();
-      status = this.currentTeam() + "'s turn";
+      status = this.txtTeamTurn(this.currentTeam());
     }
 
     let endTurnButton;
@@ -198,7 +217,7 @@ export class Game extends React.Component {
       endTurnButton = (
         <div id="end-turn-cont">
           <button onClick={e => this.endTurn(e)} id="end-turn-btn">
-            End {this.currentTeam()}&#39;s turn
+            {this.txtEndTeamTurn(this.currentTeam())}
           </button>
         </div>
       );
