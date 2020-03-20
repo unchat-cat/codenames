@@ -34,15 +34,15 @@ export const Lobby = ({ defaultGameID }) => {
   return (
     <div id="lobby">
       <p id="banner">
-        Also, check out the cooperative version at
-       &nbsp;<a href="https://www.codenamesgreen.com" target="_blank">Codenames Green</a>.
+        <!--Also, check out the cooperative version at
+       &nbsp;<a href="https://www.codenamesgreen.com" target="_blank">Codenames Green</a>.-->
       </p>
       <div id="available-games">
         <form id="new-game">
           <p className="intro">
-            Play Codenames online across multiple devices on a shared board. To
-            create a new game or join an existing game, enter a game identifier
-            and click 'GO'.
+            Jugueu al codi secret en línia amb diversos dispositius en un tauler compartit.
+	    Per crear un joc nou o afegir-vos a un joc existent, introduïu l'identificador
+	    i feu click en 'Jugar!'.
           </p>
           <input
             type="text"
@@ -54,7 +54,7 @@ export const Lobby = ({ defaultGameID }) => {
             value={newGameName}
           />
           <button disabled={!newGameName.length} onClick={handleNewGame}>
-            Go
+            Jugar!
           </button>
 
           <div id="new-game-options">
