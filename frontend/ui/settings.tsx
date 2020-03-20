@@ -19,7 +19,7 @@ export class Settings {
   static load() {
     try {
       const settingsBlob = localStorage.getItem('settings');
-      return JSON.parse(settingsBlob) || {};
+      return JSON.parse(settingsBlob) || {"colorBlind": true};
     } catch (e) {
       console.error(e);
       return {};
