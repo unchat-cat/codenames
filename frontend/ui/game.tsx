@@ -179,7 +179,7 @@ export class Game extends React.Component {
 
   txtEndTeamTurn(team) {
     team = this.txtLocaliseTeam(team);
-    return "Finalitza torn equip " + team;
+    return "Finalitza torn " + team;
   }
 
   render() {
@@ -232,7 +232,7 @@ export class Game extends React.Component {
     if (!this.state.settings.fullscreen) {
       shareLink = (
         <div id="share">
-          Send this link to friends:
+          Envieu aquest enllaç:
           <a className="url" href={window.location.href}>
             {window.location.href}
           </a>
@@ -295,16 +295,16 @@ export class Game extends React.Component {
             onClick={e => this.toggleRole(e, 'player')}
             className="player"
           >
-            Player
+            Jugadora
           </button>
           <button
             onClick={e => this.toggleRole(e, 'codemaster')}
             className="codemaster"
           >
-            Spymaster
+            Cap d'espies
           </button>
           <button onClick={e => this.nextGame(e)} id="next-game-btn">
-            Next game
+            Nou joc
           </button>
         </form>
       </div>
