@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jbowens/codenames"
+	"github.com/unchat-cat/codenames"
 )
 
 func main() {
