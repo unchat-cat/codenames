@@ -129,10 +129,15 @@ export class Game extends React.Component {
   }
 
   public nextGame(e) {
-    if (!this.state.game.winning_team && !confirm("Segures? No la cagueu, eh?")) {
+    e.preventDefault();
+    // Ask for confirmation when current game hasn't finished
+    let allowNextGame = (
+      this.state.game.winning_team ||
+      confirm("Partida en curs: voleu començar-ne una nova?")
+    );
+    if (!allowNextGame) {
       return;
     }
-    e.preventDefault();
     $.post(
       '/next-game',
       JSON.stringify({
