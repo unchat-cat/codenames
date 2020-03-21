@@ -2,15 +2,15 @@ import * as React from 'react';
 
 const settingToggles = [
   {
-    name: 'Full-screen',
+    name: 'Pantalla completa',
     setting: 'fullscreen',
   },
   {
-    name: 'Color-blind',
+    name: 'Interfície independent de colors',
     setting: 'colorBlind',
   },
   {
-    name: 'Dark',
+    name: 'Mode fosc',
     setting: 'darkMode',
   },
 ];
@@ -85,14 +85,14 @@ export class SettingsPanel extends React.Component {
           </svg>
         </div>
         <div className="settings-content">
-          <h2>SETTINGS</h2>
+          <h2>Opcions</h2>
           <div className="toggles">
             {settingToggles.map(toggle => (
               <div className="toggle-set" key={toggle.setting}>
                 <div className="settings-label">
                   {toggle.name}{' '}
                   <span className={'toggle-state'}>
-                    {this.props.values[toggle.setting] ? 'ON' : 'OFF'}
+                    {this.props.values[toggle.setting] ? 'SÍ' : 'NO'}
                   </span>
                 </div>
                 <div
