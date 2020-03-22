@@ -179,7 +179,7 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 		sort.Strings(words)
 	}
 
-	g, ok := s.games[gameID]
+	g, ok := s.games[request.GameID]
 	if (!ok || request.CreateNew) {
 		g := newGame(request.GameID, randomState(words))
 		s.games[request.GameID] = g
