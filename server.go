@@ -183,8 +183,8 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	if (!ok || request.CreateNew) {
 		g := newGame(request.GameID, randomState(words))
 		s.games[request.GameID] = g
-		writeGame(rw, g)
 	}
+	writeGame(rw, g)
 }
 
 type statsResponse struct {
