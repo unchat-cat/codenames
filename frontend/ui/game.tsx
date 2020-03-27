@@ -130,11 +130,20 @@ export class Game extends React.Component {
 
   public nextGame(e) {
     e.preventDefault();
+    // Ask for confirmation when current game hasn't finished
+    let allowNextGame = (
+      this.state.game.winning_team ||
+      confirm("Do you really want to start a new game?")
+    );
+    if (!allowNextGame) {
+      return;
+    }
     $.post(
       '/next-game',
       JSON.stringify({
         game_id: this.state.game.id,
         word_set: this.state.game.word_set,
+        create_new: true,
       }),
       g => {
         this.setState({ game: g, codemaster: false });
@@ -288,6 +297,7 @@ export class Game extends React.Component {
             Next game
           </button>
         </form>
+        <div id="coffee"><a href="https://www.buymeacoffee.com/jbowens">Buy the developer a coffee.</a></div>
       </div>
     );
   }
