@@ -132,7 +132,7 @@ flamenc
 flauta
 fletxa
 foc
-folra
+folre
 font
 forat
 franc

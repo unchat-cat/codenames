@@ -143,7 +143,7 @@ export class Game extends React.Component {
       JSON.stringify({
         game_id: this.state.game.id,
         word_set: this.state.game.word_set,
-	create_new: true,
+        create_new: true,
       }),
       g => {
         this.setState({ game: g, codemaster: false });
@@ -316,6 +316,7 @@ export class Game extends React.Component {
             Nou joc
           </button>
         </form>
+        <div id="coffee"><a href="https://www.buymeacoffee.com/jbowens">Buy the developer a coffee.</a></div>
       </div>
     );
   }

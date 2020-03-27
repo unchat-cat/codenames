@@ -1,10 +1,14 @@
 package codenames
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
+	"net/http/pprof"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -16,8 +20,8 @@ import (
 
 type Server struct {
 	Server http.Server
-	tpl    *template.Template
 
+	tpl         *template.Template
 	gameIDWords []string
 
 	mu           sync.Mutex
@@ -27,6 +31,12 @@ type Server struct {
 }
 
 func (s *Server) getGame(gameID, stateID string) (*Game, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.getGameLocked(gameID, stateID)
+}
+
+func (s *Server) getGameLocked(gameID, stateID string) (*Game, bool) {
 	g, ok := s.games[gameID]
 	if ok {
 		return g, ok
@@ -53,7 +63,7 @@ func (s *Server) handleRetrieveGame(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	gameID := path.Base(req.URL.Path)
-	g, ok := s.getGame(gameID, req.Form.Get("state_id"))
+	g, ok := s.getGameLocked(gameID, req.Form.Get("state_id"))
 	if ok {
 		writeGame(rw, g)
 		return
@@ -77,14 +87,16 @@ func (s *Server) handleGameState(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-	g, ok := s.getGame(body.GameID, body.StateID)
+	g, ok := s.getGameLocked(body.GameID, body.StateID)
 	if ok {
+		s.mu.Unlock()
 		writeGame(rw, g)
 		return
 	}
+
 	g = newGame(body.GameID, randomState(s.defaultWords))
 	s.games[body.GameID] = g
+	s.mu.Unlock()
 	writeGame(rw, g)
 }
 
@@ -101,9 +113,6 @@ func (s *Server) handleGuess(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "Error decoding", 400)
 		return
 	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	g, ok := s.getGame(request.GameID, request.StateID)
 	if !ok {
@@ -131,9 +140,6 @@ func (s *Server) handleEndTurn(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	g, ok := s.getGame(request.GameID, request.StateID)
 	if !ok {
 		http.Error(rw, "No such game", 404)
@@ -149,9 +155,9 @@ func (s *Server) handleEndTurn(rw http.ResponseWriter, req *http.Request) {
 
 func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	var request struct {
-		GameID  string   `json:"game_id"`
-		WordSet []string `json:"word_set"`
-		CreateNew bool   `json:"create_new"`
+		GameID    string   `json:"game_id"`
+		WordSet   []string `json:"word_set"`
+		CreateNew bool     `json:"create_new"`
 	}
 
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
@@ -180,8 +186,8 @@ func (s *Server) handleNextGame(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	g, ok := s.games[request.GameID]
-	if (!ok || request.CreateNew) {
-		g := newGame(request.GameID, randomState(words))
+	if !ok || request.CreateNew {
+		g = newGame(request.GameID, randomState(words))
 		s.games[request.GameID] = g
 	}
 	writeGame(rw, g)
@@ -209,16 +215,15 @@ func (s *Server) cleanupOldGames() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for id, g := range s.games {
-		if g.WinningTeam != nil && g.CreatedAt.Add(12*time.Hour).Before(time.Now()) {
+		g.mu.Lock()
+		if g.WinningTeam != nil && g.CreatedAt.Add(3*time.Hour).Before(time.Now()) {
 			delete(s.games, id)
 			fmt.Printf("Removed completed game %s\n", id)
-			continue
-		}
-		if g.CreatedAt.Add(24 * time.Hour).Before(time.Now()) {
+		} else if g.CreatedAt.Add(12 * time.Hour).Before(time.Now()) {
 			delete(s.games, id)
 			fmt.Printf("Removed expired game %s\n", id)
-			continue
 		}
+		g.mu.Unlock()
 	}
 }
 
@@ -252,7 +257,7 @@ func (s *Server) Start() error {
 	s.games = make(map[string]*Game)
 	s.defaultWords = d.Words()
 	sort.Strings(s.defaultWords)
-	s.Server.Handler = s.mux
+	s.Server.Handler = withPProfHandler(s.mux)
 
 	go func() {
 		for range time.Tick(10 * time.Minute) {
@@ -262,6 +267,39 @@ func (s *Server) Start() error {
 
 	fmt.Println("Started server. Available on http://localhost:9091")
 	return s.Server.ListenAndServe()
+}
+
+func withPProfHandler(next http.Handler) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	pprofHandler := basicAuth(mux, os.Getenv("PPROFPW"), "admin")
+
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/debug/pprof") {
+			pprofHandler.ServeHTTP(rw, req)
+			return
+		}
+		next.ServeHTTP(rw, req)
+	})
+}
+
+func basicAuth(handler http.Handler, password, realm string) http.Handler {
+	p := []byte(password)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, pass, ok := r.BasicAuth()
+		if !ok || subtle.ConstantTimeCompare([]byte(pass), p) != 1 {
+			w.Header().Set("WWW-Authenticate", `Basic realm="`+realm+`"`)
+			w.WriteHeader(401)
+			io.WriteString(w, "Unauthorized\n")
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func writeGame(rw http.ResponseWriter, g *Game) {
